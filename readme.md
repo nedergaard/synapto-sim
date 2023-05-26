@@ -12,9 +12,18 @@ The simulation is built using the Unity engine and C# for the neural network, cr
 
 ### Installation
 
+Unity editor version: 2021.3.25f1
+
 ### Known issues
 - There is no code or anything yet
 - The readme is incomplete
+
+### Contributing
+
+#### Developing on Windows
+Setup Git to convert CR LF line endings to LF automatically:
+
+    git config --global core.autocrlf true
 
 ### License
 synapto-sim is licensed under the MIT license.
