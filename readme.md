@@ -12,7 +12,7 @@ The simulation is built using the Unity engine and C# for the neural network, cr
 
 ### Installation
 
-Unity editor version: 2021.3.25f1
+Unity editor version: 2022.2.20f1
 
 ### Known issues
 - There is no code or anything yet
