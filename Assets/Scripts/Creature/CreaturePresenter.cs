@@ -1,4 +1,3 @@
-using System.Linq;
 using Assets.Scripts.Creature.Capability;
 using Assets.Scripts.Creature.Sense;
 
@@ -19,10 +18,7 @@ namespace Assets.Scripts.Creature
 
         public void Tick()
         {
-            _brain.Feed(
-                _senses
-                    .Select(sense => sense.GetScaledSensoryInput())
-                    .ToArray());
+            _brain.FeedForward();
 
             var brainOutput = _brain.GetOutput();
             for (var i = 0; i < brainOutput.Length; i++)

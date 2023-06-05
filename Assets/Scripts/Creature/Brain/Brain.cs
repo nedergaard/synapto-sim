@@ -23,7 +23,7 @@ namespace Assets.Scripts.Creature.Brain
         public IList<ICapability> Capabilities { get; }
 
         /// <inheritdoc />
-        public void Feed(float[] inputs)
+        public void FeedForward()
         {
             throw new NotImplementedException();
         }

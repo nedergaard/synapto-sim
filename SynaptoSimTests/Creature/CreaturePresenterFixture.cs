@@ -15,7 +15,7 @@ namespace SynaptoSimTests.Creature
         public IList<ICapability> Capabilities { get; private set; }
         public IList<ISense> Senses { get; private set; }
 
-        public float[]? LastBrainFeed { get; private set; }
+        public bool WasBrainFeedForwardCalled { get; private set; }
 
         public CreaturePresenterFixture(Fixture autoFixture)
         {
@@ -24,8 +24,8 @@ namespace SynaptoSimTests.Creature
             Brain = _autoFixture.Create<IBrain>();
             Brain
                 .AsMock()
-                .Setup(brain => brain.Feed(It.IsAny<float[]>()))
-                .Callback((float[] argument) => LastBrainFeed = argument);
+                .Setup(brain => brain.FeedForward())
+                .Callback(() => WasBrainFeedForwardCalled = true);
 
             Capabilities = _autoFixture.Create<List<ICapability>>();
             Senses = _autoFixture.Create<List<ISense>>();

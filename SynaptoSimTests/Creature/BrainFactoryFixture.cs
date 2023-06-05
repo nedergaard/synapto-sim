@@ -15,12 +15,28 @@ public class BrainFactoryFixture
     private INeuron NewCapabilityNeuronFunc(ICapability capability) => new MockCapabilityNeuron { Capability = capability };
 }
 
-public class MockSenseNeuron : INeuron
+public class MockNeuron : INeuron
+{
+    #region Implementation of INeuron
+
+    /// <inheritdoc />
+    public float Output { get; set; }
+
+    /// <inheritdoc />
+    public void FeedForward()
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
+}
+
+public class MockSenseNeuron : MockNeuron
 {
     public ISense Sense { get; set; }
 }
 
-public class MockCapabilityNeuron : INeuron
+public class MockCapabilityNeuron : MockNeuron
 {
     public ICapability Capability { get; set; }
 }
