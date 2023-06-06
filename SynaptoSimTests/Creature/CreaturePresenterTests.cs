@@ -45,7 +45,7 @@ namespace SynaptoSimTests.Creature
 
             // Assert
             fixture.Capabilities
-                .Select(capability => capability.Excertion)
+                .Select(capability => capability.Exertion)
                 .Should()
                 .BeEquivalentTo(brainOutput);
         }

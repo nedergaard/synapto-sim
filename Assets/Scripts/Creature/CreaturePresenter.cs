@@ -23,7 +23,7 @@ namespace Assets.Scripts.Creature
             var brainOutput = _brain.GetOutput();
             for (var i = 0; i < brainOutput.Length; i++)
             {
-                _capabilities[i].Excertion = brainOutput[i];
+                _capabilities[i].Exertion = brainOutput[i];
             }
         }
     }
