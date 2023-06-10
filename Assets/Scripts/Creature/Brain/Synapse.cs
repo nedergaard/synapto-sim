@@ -3,8 +3,14 @@
     public class Synapse
         : ISynapse
     {
-        public INeuron InputNeuron { get; set; }
         public INeuron OutputNeuron { get; set; }
         public float Weight { get; set; }
+
+        #region Implementation of ISynapse
+
+        /// <inheritdoc />
+        public float Input { get; set; }
+
+        #endregion
     }
 }

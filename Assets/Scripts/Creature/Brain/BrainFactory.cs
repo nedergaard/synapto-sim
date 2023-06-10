@@ -1,17 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Assets.Scripts.Creature.Capability;
 using Assets.Scripts.Creature.Sense;
+using Unity.VisualScripting;
 
 namespace Assets.Scripts.Creature.Brain
 {
     public class BrainFactory
     {
-        private readonly Func<ISense, INeuron> _senseNeuronFactoryFunc;
-        private readonly Func<ICapability, INeuron> _capabilityFactoryFunc;
+        private record NeuronArguments
+        {
+            public List<ISynapse> Inputs { get; } = new();
+            public List<ISynapse> Outputs { get; } = new();
+        }
 
-        public BrainFactory(Func<ISense, INeuron> senseNeuronFactoryFunc, Func<ICapability, INeuron> capabilityFactoryFunc)
+        private record SenseNeuronArguments(ISense Sense) : NeuronArguments
+        {
+            public ISense Sense { get; } = Sense;
+        }
+
+        private record InternalNeuronArguments(byte Id, float Bias) : NeuronArguments
+        {
+            public byte Id { get; } = Id;
+            public float Bias { get; } = Bias;
+        }
+
+        private record CapabilityNeuronArguments(ICapability Capability) : NeuronArguments
+        {
+            public ICapability Capability { get; } = Capability;
+        }
+
+        private readonly Func<ISense, IEnumerable<ISynapse>, INeuron> _senseNeuronFactoryFunc;
+        private readonly Func<ICapability, IEnumerable<ISynapse>, INeuron> _capabilityFactoryFunc;
+
+        // TODO : Make factory method arguments nullable and use own implementation in that case
+        public BrainFactory(
+            Func<ISense, IEnumerable<ISynapse>, INeuron> senseNeuronFactoryFunc, 
+            Func<ICapability, IEnumerable<ISynapse>, INeuron> capabilityFactoryFunc)
         {
             _senseNeuronFactoryFunc = senseNeuronFactoryFunc;
             _capabilityFactoryFunc = capabilityFactoryFunc;
@@ -37,20 +64,19 @@ namespace Assets.Scripts.Creature.Brain
                     .Chunks(stride)
                     .ToList();
 
-            var internalNeurons =
+            var internalNeuronArguments =
                 chromosomes
-                    .Select(chromosome => chromosome[..neuronSequenceStringLength])
-                    .Select(GetNeuron)
+                    .Select(chromosome => NewNeuronArguments(chromosome[..neuronSequenceStringLength]))
                     .ToList();
 
-            var senseNeurons =
+            var senseNeuronArguments =
                 senses
-                    .Select(_senseNeuronFactoryFunc)
+                    .Select(sense => new SenseNeuronArguments(sense))
                     .ToList();
 
-            var capabilityNeurons =
+            var capabilityNeuronArguments =
                 capabilities
-                    .Select(_capabilityFactoryFunc)
+                    .Select(capability => new CapabilityNeuronArguments(capability))
                     .ToList();
 
             foreach (var synapseSequence in
@@ -67,34 +93,39 @@ namespace Assets.Scripts.Creature.Brain
 
                 var weight = GetTwosComplementFrom13BitHex(synapseSequence[4..]);
 
-                result.Synapses
-                    .Add(
-                        new Synapse
-                        {
-                            InputNeuron =
-                                isInputNeuronASense
-                                    ? senseNeurons[inputNeuronIndex]
-                                    : internalNeurons[inputNeuronIndex],
-                            OutputNeuron =
-                                isOutputNeuronACapability
-                                    ? capabilityNeurons[outputNeuronIndex]
-                                    : internalNeurons[outputNeuronIndex],
-                            Weight = weight,
-                        });
+                var synapse = new Synapse { Weight = weight };
+
+                var targetNeuronInputs =
+                    isInputNeuronASense
+                        ? senseNeuronArguments[inputNeuronIndex].Outputs
+                        : internalNeuronArguments[inputNeuronIndex].Outputs;
+                targetNeuronInputs.Add(synapse);
+
+                var targetNeuronOutputs =
+                    isOutputNeuronACapability
+                        ? capabilityNeuronArguments[outputNeuronIndex].Inputs
+                        : internalNeuronArguments[outputNeuronIndex].Inputs;
+                targetNeuronOutputs.Add(synapse);
             }
+
+            result.Neurons
+                .AddRange(senseNeuronArguments
+                    .Select(args => _senseNeuronFactoryFunc(args.Sense, args.Outputs)));
+            
+            result.Neurons.AddRange(internalNeuronArguments.Select(NewNeuron));
+
+            result.Neurons
+                .AddRange(capabilityNeuronArguments
+                    .Select(args => _capabilityFactoryFunc(args.Capability, args.Inputs)));
 
             return result;
         }
 
-        private INeuron GetNeuron(string neuronSequence)
-        {
-            return
-                new Neuron
-                {
-                    Id = byte.Parse(neuronSequence[..2], NumberStyles.AllowHexSpecifier),
-                    Bias = GetTwosComplementFrom13BitHex(neuronSequence),
-                };
-        }
+        private INeuron NewNeuron(InternalNeuronArguments args) => new Neuron(args.Id, args.Bias, args.Inputs, args.Outputs);
+
+        private InternalNeuronArguments NewNeuronArguments(string neuronSequence) =>
+            new(Id: byte.Parse(neuronSequence[..2], NumberStyles.AllowHexSpecifier),
+                Bias: GetTwosComplementFrom13BitHex(neuronSequence));
 
         private float GetTwosComplementFrom13BitHex(ReadOnlySpan<char> hex)
         {

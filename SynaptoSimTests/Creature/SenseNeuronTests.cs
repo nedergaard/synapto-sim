@@ -1,22 +1,22 @@
 ﻿using Assets.Scripts.Creature.Brain;
-using AutoFixture.Xunit2;
 using FluentAssertions;
+using SynaptoSimTests.Mocking;
 
 namespace SynaptoSimTests.Creature
 {
     public class SenseNeuronTests
     {
         [Theory]
-        [InlineAutoData(0, 20, 3, -0.7)]
-        [InlineAutoData(-5, 15, 10, 0.5)]
-        [InlineAutoData(-10, 10, -10, -1)]
-        [InlineAutoData(-20, 0, -10, 0)]
-        [InlineAutoData(-40, -20, -30, 0)]
-        [InlineAutoData(80, 100, 97, 0.7)]
-        [InlineAutoData(3, 7, 7, 1)]
+        [AutoDomainInlineData(0, 20, 3, -0.7)]
+        [AutoDomainInlineData(-5, 15, 10, 0.5)]
+        [AutoDomainInlineData(-10, 10, -10, -1)]
+        [AutoDomainInlineData(-20, 0, -10, 0)]
+        [AutoDomainInlineData(-40, -20, -30, 0)]
+        [AutoDomainInlineData(80, 100, 97, 0.7)]
+        [AutoDomainInlineData(3, 7, 7, 1)]
         public void FeedForward_normalizes_sense_value(
             float minimumInput, float maximumInput, float currentInput, float expected,
-            SenseBuilder senseBuilder)
+            SenseBuilder senseBuilder, ISynapse outputSynapse)
         {
             // Arrange
             var sense =
@@ -25,13 +25,13 @@ namespace SynaptoSimTests.Creature
                     .WithSensoryInput(currentInput)
                     .Build();
 
-            var dut = new SenseNeuron(sense);
+            var dut = new SenseNeuron(sense, new[] { outputSynapse });
 
             // Act
             dut.FeedForward();
 
             // Assert
-            dut.Output.Should().Be(expected);
+            outputSynapse.Input.Should().Be(expected);
         }
     }
 }

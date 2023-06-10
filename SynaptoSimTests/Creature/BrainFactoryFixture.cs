@@ -11,16 +11,24 @@ public class BrainFactoryFixture
         return new BrainFactory(NewSenseNeuronFunc, NewCapabilityNeuronFunc);
     }
 
-    private INeuron NewSenseNeuronFunc(ISense sense) => new MockSenseNeuron { Sense = sense };
-    private INeuron NewCapabilityNeuronFunc(ICapability capability) => new MockCapabilityNeuron { Capability = capability };
+    private INeuron NewSenseNeuronFunc(ISense sense, IEnumerable<ISynapse> outputs) => 
+        new MockSenseNeuron
+        {
+            Sense = sense,
+            Outputs = outputs.ToList(),
+        };
+
+    private INeuron NewCapabilityNeuronFunc(ICapability capability, IEnumerable<ISynapse> inputs) => 
+        new MockCapabilityNeuron
+        {
+            Capability = capability,
+            Inputs = inputs.ToList(),
+        };
 }
 
 public class MockNeuron : INeuron
 {
     #region Implementation of INeuron
-
-    /// <inheritdoc />
-    public float Output { get; set; }
 
     /// <inheritdoc />
     public void FeedForward()
@@ -34,9 +42,12 @@ public class MockNeuron : INeuron
 public class MockSenseNeuron : MockNeuron
 {
     public ISense Sense { get; set; }
+
+    public IEnumerable<ISynapse> Outputs { get; set; }
 }
 
 public class MockCapabilityNeuron : MockNeuron
 {
     public ICapability Capability { get; set; }
+    public IEnumerable<ISynapse> Inputs { get; set; }
 }

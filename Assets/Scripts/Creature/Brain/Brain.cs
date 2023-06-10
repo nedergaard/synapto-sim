@@ -9,14 +9,14 @@ namespace Assets.Scripts.Creature.Brain
     {
         public Brain()
         {
-            Synapses = new List<ISynapse>();
+            Neurons = new List<INeuron>();
             Senses = new List<ISense>();
             Capabilities = new List<ICapability>();
         }
 
         #region Implementation of IBrain
 
-        public IList<ISynapse> Synapses { get; }
+        public IList<INeuron> Neurons{ get; }
 
         public IList<ISense> Senses { get; }
 

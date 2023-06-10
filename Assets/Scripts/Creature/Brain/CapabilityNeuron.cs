@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using Assets.Scripts.Creature.Capability;
 
 namespace Assets.Scripts.Creature.Brain
 {
-    public class CapabilityNeuron
+    public class CapabilityNeuron : INeuron
     {
         private readonly ICapability _capability;
         private readonly Func<float> _activationFunctionFunc;
@@ -18,6 +19,8 @@ namespace Assets.Scripts.Creature.Brain
 
             _outputRange = _capability.MaximumExertion - capability.MinimumExertion;
         }
+
+        public IReadOnlyList<ISynapse> Outputs { get; }
 
         public void FeedForward()
         {

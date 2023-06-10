@@ -45,79 +45,79 @@ public class BrainFactoryTests
     {
         // Arrange
 
-        /*  3 (2) senses           1 neuron         2 capabilities
+        /*  3 (2 in use) senses     1 neuron         3 (2 in use) capabilities
+         *
          *    S -----  w: 2.047
          *           \ 
-         *    S       >=========== [ neuron ] -----W:1.804-- C     
+         *    S       >=========== [ neuron ] -----W:4.095-- C     
          *           / w:-2.047    bias: 0.2 
          *    S ----<                
-         *           \-----w:4.095 ------------------------- C
+         *           \-----w:1.365 ------------------------- C
+         *
+         *                                                   C
          */
 
         var genome =
             "02" + // 2 additional synapses per hidden neuron
             /* neuron */
             "00C8" + // Function 0, bias 0.2
-            /* synapse 1 */
+            /* synapse 0, Sense[0] -> Internal[0] */
             "00" + // Input from neuron id 0
             "00" + // Output to neuron id 0
             "07FF" + // Input from sense neuron (bit=0), output to internal neuron (bit=0), <not used> bit=0, Weight 2.047 (bits=0_0111_1111_1111)
-            /* synapse 2 */
+            /* synapse 1, Sense[2] -> Internal[0] */
             "02" + // Input from neuron id 2
             "00" + // Output to neuron id 0
             "1801" + // Input from sense neuron (bit=0), output to internal neuron (bit=0), <not used> bit=0, Weight -2.047 (bits=1_1000_0000_0001)
-            /* synapse 3 */
+            /* synapse 2, Sense[2] -> Capability[1] */
             "02" + // Input from neuron id 2
             "01" + // Output to neuron id 1
             "4555" + // Input from sense neuron (bit=0), output to capability neuron (bit=1), <not used> bit=0, Weight 1.365 (bits=0_0101_0101_0101)
-            /* synapse 4 */
+            /* synapse 3, Internal[0] -> Capability[0] */
             "00" + // Input from neuron id 0
             "00" + // Output to neuron id 0
-            "CFFF"; // Input from internal neuron (bit=1), output to capability neuron (bit=1), <not used> bit=0, Weight 1.804 (bits=0_1111_1111_1111)
+            "CFFF"; // Input from internal neuron (bit=1), output to capability neuron (bit=1), <not used> bit=0, Weight 4.095 (bits=0_1111_1111_1111)
 
-        var neuron =
-            new
-            {
-                Id = 0,
-                Bias = 0.2f,
-            };
-
-        var senseNeuron0 = new { Sense = senses[0] };
-        var senseNeuron2 = new { Sense = senses[2] };
-
-        var capabilityNeuron0 = new { Capability = capabilities[0] };
-        var capabilityNeuron1 = new { Capability = capabilities[1] }; 
+        var synapse0 = new { Weight = 2.047f, };
+        var synapse1 = new { Weight = -2.047f, };
+        var synapse2 = new { Weight = 1.365f, };
+        var synapse3 = new { Weight = 4.095f, };
 
         var expected =
             new
             {
-                Synapses = 
+                Neurons = 
                     new object[]
                     {
                         new
                         {
-                            InputNeuron = senseNeuron0,
-                            OutputNeuron = neuron,
-                            Weight = 2.047f,
+                            Sense = senses[0],
+                            Outputs = new object[] { synapse0 },
+                        },
+                        new { Sense = senses[1] },
+                        new
+                        {
+                            Sense = senses[2],
+                            Outputs = new object[] { synapse1, synapse2 },
                         },
                         new
                         {
-                            InputNeuron = senseNeuron2,
-                            OutputNeuron = neuron,
-                            Weight = -2.047f,
+                            Id = 0,
+                            Bias = 0.2f,
+                            Inputs = new object[] { synapse0, synapse1 },
+                            Outputs = new object[] { synapse3 },
                         },
                         new
                         {
-                            InputNeuron = senseNeuron2,
-                            OutputNeuron = capabilityNeuron1,
-                            Weight = 1.365f,
+                            Capability = capabilities[0],
+                            Inputs = new object[] { synapse3 },
                         },
                         new
                         {
-                            InputNeuron = neuron,
-                            OutputNeuron = capabilityNeuron0,
-                            Weight = 4.095f,
+                            Capability = capabilities[1],
+                            Inputs = new object[] { synapse2 },
                         },
+                        new { Capability = capabilities[2] },
                     },
             };
 
@@ -134,7 +134,7 @@ public class BrainFactoryTests
     [Theory]
     [AutoDomain]
     public void BuildFromGenome_sets_correct_bias_on_internal_neurons(
-        BrainFactoryFixture fixture, ISense[] senses, ICapability[] capabilities)
+        BrainFactoryFixture fixture, ISense sense, ICapability capability)
     {
         // Arrange
 
@@ -147,7 +147,7 @@ public class BrainFactoryTests
          *                     bias: -3.876 
          */
 
-        // Some of the synapses are there just to ensure nothing gets optimized out.
+        // The synapses are there just to ensure nothing gets optimized out.
 
         var genome =
             "00" + // 2:1 synapses:neuron
@@ -172,26 +172,23 @@ public class BrainFactoryTests
             "00" + // Output to neuron id 0
             "C000"; // Input from internal neuron (bit=1), output to capability neuron (bit=1), <not used> bit=0, Weight 0
 
-        var neuron0 = new { Bias = 4.0f };
-        var neuron1 = new { Bias = -3.876f };
-
         var expected =
             new
             {
-                Synapses = 
+                Neurons =
                     new object[]
                     {
-                        new { OutputNeuron = neuron0 },
-                        new { OutputNeuron = neuron1 },
-                        new { InputNeuron = neuron0 },
-                        new { InputNeuron = neuron1 },
+                        new(),
+                        new { Bias = 4.0f },
+                        new { Bias = -3.876f },
+                        new(),
                     },
             };
 
         var dut = fixture.NewDut();
 
         // Act
-        var actual = dut.BuildFrom(genome, senses, capabilities);
+        var actual = dut.BuildFrom(genome, new [] { sense }, new[] { capability });
 
         // Assert
         actual.Should()

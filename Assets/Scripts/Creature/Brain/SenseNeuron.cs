@@ -1,16 +1,22 @@
-﻿using Assets.Scripts.Creature.Sense;
+﻿using System.Collections.Generic;
+using Assets.Scripts.Creature.Sense;
 
 namespace Assets.Scripts.Creature.Brain
 {
     public class SenseNeuron : INeuron
     {
         private readonly ISense _sense;
+        private readonly IEnumerable<ISynapse> _outputSynapses;
+
         private readonly float _rangeFactor;
         private readonly float _inputMedian;
 
-        public SenseNeuron(ISense sense)
+        public IReadOnlyList<ISynapse> Outputs { get; }
+
+        public SenseNeuron(ISense sense, IEnumerable<ISynapse> outputSynapses)
         {
             _sense = sense;
+            _outputSynapses = outputSynapses;
 
             const float outputRange = 2; // -1 to +1
             var inputRange = sense.MaximumSensoryInput - sense.MinimumSensoryInput;
@@ -21,12 +27,12 @@ namespace Assets.Scripts.Creature.Brain
         #region Implementation of INeuron
 
         /// <inheritdoc />
-        public float Output { get; private set; }
-
-        /// <inheritdoc />
         public void FeedForward()
         {
-            Output = Normalize(_sense.GetSensoryInput());
+            foreach (var outputSynapse in _outputSynapses)
+            {
+                outputSynapse.Input = Normalize(_sense.GetSensoryInput());
+            }
         }
 
         #endregion
