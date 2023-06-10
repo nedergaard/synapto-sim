@@ -11,6 +11,9 @@
         /// <inheritdoc />
         public float Input { get; set; }
 
+        /// <inheritdoc />
+        public float WeightedOutput { get; }
+
         #endregion
     }
 }
