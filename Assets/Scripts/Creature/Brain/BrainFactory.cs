@@ -93,7 +93,7 @@ namespace Assets.Scripts.Creature.Brain
 
                 var weight = GetTwosComplementFrom13BitHex(synapseSequence[4..]);
 
-                var synapse = new Synapse { Weight = weight };
+                var synapse = new Synapse(weight);
 
                 var targetNeuronInputs =
                     isInputNeuronASense
