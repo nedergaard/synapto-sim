@@ -23,6 +23,13 @@ namespace SynaptoSimTests.Creature
             WithPassThroughActivationFunction();
         }
 
+        public NeuronFixture WithBias(float bias)
+        {
+            _bias = bias;
+
+            return this;
+        }
+
         public NeuronFixture WithInputsFrom(SynapseArrayBuilder inputSynapsesArrayBuilder)
         {
             _inputSynapsesArrayBuilder = inputSynapsesArrayBuilder;

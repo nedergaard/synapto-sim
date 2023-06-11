@@ -33,7 +33,7 @@ namespace Assets.Scripts.Creature.Brain
         public void FeedForward()
         {
             var weightedSum = _inputs.Sum(input => input.WeightedOutput);
-            var functionOutput = _activationFunctionFunc(weightedSum);
+            var functionOutput = _activationFunctionFunc(weightedSum + Bias);
             foreach (var output in _outputs)
             {
                 output.Input = functionOutput;

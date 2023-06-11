@@ -59,5 +59,32 @@ namespace SynaptoSimTests.Creature
                         .Should()
                         .BeApproximately(expected, Precision));
         }
+
+        [Theory]
+        [AutoDomainInlineData(0.2f, 0.3f, -1.6f, -1.1f)]
+        [AutoDomainInlineData(-0.5f, -0.1f, -0.2f, -0.8f)]
+        public void FeedForward_applies_bias_to_sum_of_weightedoutput(
+            float weightedOuput1, float weightedOuput2, float bias, float expected,
+            SynapseArrayBuilder synapseArrayBuilder, NeuronFixture fixture)
+        {
+            // Arrange
+            var dut =
+                fixture
+                    .WithBias(bias)
+                    .WithInputsFrom(
+                        synapseArrayBuilder
+                            .WithSynapse(weightedOutput: weightedOuput1)
+                            .WithSynapse(weightedOutput: weightedOuput2))
+                    .Build();
+
+            // Act
+            dut.FeedForward();
+
+            // Assert
+            dut.Outputs
+                .First().Input
+                .Should().BeApproximately(expected, Precision);
+        }
+
     }
 }
