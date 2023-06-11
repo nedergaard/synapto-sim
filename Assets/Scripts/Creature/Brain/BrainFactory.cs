@@ -121,7 +121,7 @@ namespace Assets.Scripts.Creature.Brain
             return result;
         }
 
-        private INeuron NewNeuron(InternalNeuronArguments args) => new Neuron(args.Id, args.Bias, args.Inputs, args.Outputs);
+        private INeuron NewNeuron(InternalNeuronArguments args) => new Neuron(args.Id, args.Bias, x => x, args.Inputs, args.Outputs);
 
         private InternalNeuronArguments NewNeuronArguments(string neuronSequence) =>
             new(Id: byte.Parse(neuronSequence[..2], NumberStyles.AllowHexSpecifier),

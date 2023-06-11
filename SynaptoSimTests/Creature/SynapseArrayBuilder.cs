@@ -21,6 +21,12 @@ public class SynapseArrayBuilder
 
         return this;
     }
+    public SynapseArrayBuilder WithSynapseCount(int synapseCount)
+    {
+        _weightedOutputs.AddRange(_fixture.CreateMany<float>(synapseCount));
+
+        return this;
+    }
 
     public ISynapse[] Build()
     {
@@ -31,8 +37,10 @@ public class SynapseArrayBuilder
 
         for (var index = 0; index < _weightedOutputs.Count; index++)
         {
-            result[index]
-                .AsMock()
+            var mock = result[index].AsMock();
+
+            mock
+                .SetupAllProperties()
                 .Setup(mock => mock.WeightedOutput)
                 .Returns(_weightedOutputs[index]);
         }
